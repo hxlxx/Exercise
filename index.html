@@ -99,6 +99,10 @@
       function generateRandomExpression(min, max, operator) {
         let number1 = getRandomNumberInRange(min, max)
         let number2 = getRandomNumberInRange(min, max)
+        while (!(number1 - number2)) {
+          number1 = getRandomNumberInRange(min, max)
+          number2 = getRandomNumberInRange(min, max)
+        }
         let result
         switch (operator) {
           case 'plus':
