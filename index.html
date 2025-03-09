@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+      }
+      #app {
+        padding: 10px 20px;
+      }
+      ul {
+        list-style-type: none;
+        max-height: 70vh;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 20px;
+      }
+      .expression {
+        display: flex;
+        gap: 10px;
+      }
+      .answer.hide {
+        display: none;
+      }
+      .answer {
+        font-weight: bolder;
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <form id="options">
+        <div>
+          <label for="taskCount">生成题目数：</label>
+          <input id="taskCount" name="taskCount" type="text" value="10" />
+        </div>
+        <div>
+          <label>生成题目范围：</label>
+          <input id="taskRangeMin" name="taskRangeMin" type="text" value="1" />
+          <span> ~ </span>
+          <input id="taskRangeMax" name="taskRangeMax" type="text" value="10" />
+        </div>
+        <div style="display: flex; gap: 20px;">
+          <div>题目类型：</div>
+          <div>
+            <input id="plus" name="operator" type="radio" value="plus" />
+            <label for="plus">加法</label>
+          </div>
+          <div>
+            <input id="minus" name="operator" type="radio" value="minus" />
+            <label for="minus">减法</label>
+          </div>
+          <div>
+            <input
+              id="random"
+              name="operator"
+              type="radio"
+              value="random"
+              checked
+            />
+            <label for="random">随机</label>
+          </div>
+        </div>
+        <div>
+          <button type="submit"">添加</button>
+        </div>
+      </form>
+      <div>
+        <div>
+          <button onclick="showAnswer()">展示答案</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      const options = {}
+      const numbericFields = ['taskCount', 'taskRangeMin', 'taskRangeMax']
+      function initOptions() {
+        const optionsForm = document.querySelector('#options')
+        optionsForm.addEventListener('submit', function (e) {
+          e.preventDefault()
+          const formData = new FormData(this)
+          for (const [key, value] of formData.entries()) {
+            options[key] = numbericFields.includes(key)
+              ? parseInt(value)
+              : value
+          }
+          render()
+        })
+      }
+
+      function generateRandomExpression(min, max, operator) {
+        let number1 = getRandomNumberInRange(min, max)
+        let number2 = getRandomNumberInRange(min, max)
+        let result
+        switch (operator) {
+          case 'plus':
+            operator = '+'
+            result = number1 + number2
+            break
+          case 'minus':
+            operator = '-'
+            if (number1 < number2) {
+              ;[number2, number1] = [number1, number2]
+            }
+            result = number1 - number2
+            break
+          case 'random':
+            if (Math.random() > 0.5) {
+              operator = '+'
+              result = number1 + number2
+            } else {
+              operator = '-'
+              if (number1 < number2) {
+                ;[number2, number1] = [number1, number2]
+              }
+              result = number1 - number2
+            }
+          default:
+            break
+        }
+        return {
+          number1,
+          number2,
+          operator,
+          answer: result
+        }
+      }
+
+      function getRandomNumberInRange(start, end) {
+        return Math.floor(Math.random() * (end - start + 1) + start)
+      }
+
+      function generateTasks() {
+        const tasks = []
+        for (let i = 0; i < options.taskCount; i++) {
+          const task = generateRandomExpression(
+            options.taskRangeMin,
+            options.taskRangeMax,
+            options.operator
+          )
+          tasks.push(task)
+        }
+        return tasks
+      }
+
+      function initDom() {
+        const app = document.querySelector('#app')
+        const container = document.createElement('ul')
+        container.id = 'container'
+        app.appendChild(container)
+      }
+
+      let hideAnswer = true
+      function render() {
+        const container = document.querySelector('#container')
+        generateTasks().forEach(({ number1, number2, operator, answer }) => {
+          const expressionItem = document.createElement('li')
+          expressionItem.classList.add('expression')
+          expressionItem.innerHTML = `
+          <div>${number1}</div>
+            <div>${operator}</div>
+            <div>${number2}</div>
+            <div>=</div>
+            <div class="answer${hideAnswer ? ' hide' : ''}">${answer}</div>
+            `
+          container.appendChild(expressionItem)
+        })
+      }
+
+      function showAnswer() {
+        hideAnswer = !hideAnswer
+        const answers = document.querySelectorAll('.answer')
+        answers.forEach((an) => {
+          an.classList.toggle('hide')
+        })
+      }
+
+      initOptions()
+      initDom()
+    </script>
+  </body>
+</html>
